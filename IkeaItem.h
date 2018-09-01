@@ -29,6 +29,10 @@ class IkeaItem
 public:
 
 
+
+
+
+
 protected:
 
     int _catalog_number;
