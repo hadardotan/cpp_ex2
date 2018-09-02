@@ -35,8 +35,21 @@ public:
 
 protected:
 
-    int _catalog_number;
-    std::string _item_name;
+    int _catalogNumber;
+
+public:
+    int getCatalogNumber() const {
+        return _catalogNumber;
+    }
+
+protected:
+    std::string _itemName;
+public:
+    const std::string &getItemName() const {
+        return _itemName;
+    }
+
+protected:
     double _price; // price per unit
 
 
