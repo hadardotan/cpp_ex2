@@ -6,8 +6,33 @@
 
 
 
+/**
+ * global variables
+ */
+
+std::vector<IkeaItem*> ikeaItems; // <item, quantity>
+
+/**
+ * helper functions
+ */
 
 
+std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
+{
+    str.erase(0, str.find_first_not_of(chars));
+    return str;
+}
+
+std::string& rtrim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
+{
+    str.erase(str.find_last_not_of(chars) + 1);
+    return str;
+}
+
+std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
+{
+    return ltrim(rtrim(str, chars), chars);
+}
 
 
 // todo - create enum of item names
@@ -36,17 +61,41 @@ std::pair<std::string, std::string> splitLineByColon(std::string line)
 
 
 
+IkeaItem* findExistItem(const std::string &catalogNumber)
+{
 
+    for (auto &ikeaItem : ikeaItems) {
+
+        if (ikeaItem->getCatalogNumber() == catalogNumber)
+        {
+            return ikeaItem;
+        }
+
+    }
+    return nullptr;
+
+
+}
+
+
+
+IkeaItem createItem(std::vector<std::pair<std::string, std::string>> currentItem);
 
 /**
  * reads content of input file called fileName and adds described item to stock
  * @param fileName
  * @return
  */
-bool addItem(std::string fileName)
+void addItem(const std::string fileName)
 {
     std::string currentLine;
+    IkeaItem ikeaItem;
+    IkeaItem* existItem;
     std::ifstream  inputFile(fileName);
+    bool itemExist = false;
+
+    std::vector<std::pair<std::string, std::string>> currentItem;
+
     if (inputFile.is_open())
     {
         int lineIndex = 0;
@@ -54,25 +103,58 @@ bool addItem(std::string fileName)
         {
             if (currentLine == END_OF_ITEM)
             {
+                //create item object
+                if (currentItem.size() < 4)
+                {
+                    std::cout << "illegal item fields\n";
+                    inputFile.close();
+                    return;
+                }
+                if (itemExist)
+                {
+                    //
+
+                }
+                ikeaItem = createItem(currentItem);
+                if (ikeaItem.getItemName() == "")
+                {
+                    std::cout << "illegal item fields\n";
+                    inputFile.close();
+                    return;
+                }
+                ikeaItems.push_back(&ikeaItem);
                 lineIndex = 0;
+                currentItem.clear();
             }
             else
             {
                 std::pair<std::string, std::string> splitLine = splitLineByColon(currentLine);
 
-                // mandatory fields
+                // check existance of mandatory fields
                 if (lineIndex < MIN_NUM_OF_ITEM_LINES)
                 {
+
                     if (splitLine.first != paramNames[lineIndex])
                     {
                         std::cout << "illegal line param\n";
+                        //return to menu
+                        inputFile.close();
+                        return;
+
                     }
-                    lineIndex++;
+                    if (lineIndex == 0 )
+                    { //check if item exist
+                        existItem = findExistItem(splitLine.second);
+                        if (existItem != nullptr) //means item exist - update quantity
+                        {
+                            itemExist = true;
+                        }
+                    }
                 }
 
-                // additional fields
+                currentItem.push_back(splitLine);
 
-
+                lineIndex++;
 
             }
 
@@ -90,6 +172,54 @@ bool addItem(std::string fileName)
     }
 
 
+}
+
+IkeaItem createItem(std::vector<std::pair<std::string, std::string>> currentItem)
+{
+
+    //create mandatory first
+    IkeaItem mandatory(trim(currentItem[0].second), trim(currentItem[1].second), trim(currentItem[3].second), trim(currentItem[2].second));
+    std::string firstAdditional, secondAdditional;
+    firstAdditional = trim(currentItem[4].first);
+
+    if ( firstAdditional == "Weight" && currentItem.size() == 5)
+    {
+        return FabricItem(mandatory, trim(currentItem[4].second));
+    }
+    else if (firstAdditional == "Calories" && currentItem.size() == 5)
+    {
+        return CandyItem(mandatory, trim(currentItem[4].second));
+    }
+    else if(firstAdditional == "Dimensions")
+    {
+        secondAdditional = trim(currentItem[5].first);
+        if ( secondAdditional == "Material" && currentItem.size() == 7)
+        {
+            if (trim(currentItem[6].first) == "Color")
+            {
+                return BigFurnitureItem(mandatory, trim(currentItem[4].second), trim(currentItem[5].second),
+                                                                                    trim(currentItem[6].second));
+            }
+        }
+        else if( secondAdditional == "Capacity" &&currentItem.size() == 6)
+        {
+            return KitchenItem(mandatory, trim(currentItem[4].second), trim(currentItem[5].second));
+        }
+    }
+    else if(firstAdditional == "Author" && currentItem.size() == 7)
+    {
+        if (trim(currentItem[5].first) == "Year of publication")
+        {
+            if (trim(currentItem[6].first) == "Length")
+            {
+                return LeisureItem(mandatory, trim(currentItem[4].second),
+                                                   trim(currentItem[5].second), trim(currentItem[6].second));
+            }
+        }
+    }
+
+    //case nothing was returned , return illegal empty item
+    return nullptr;
 }
 
 
@@ -172,7 +302,7 @@ bool sellItem(int catalogNumber);
 int main()
 {
 
-    std::vector<IkeaItem, double> ikeaItems; // <item, quantity>
+
 
     int userInput;
     bool showMenu = true;
@@ -198,10 +328,8 @@ int main()
 
                 std::string fileName;
                 std::cin >> fileName;
-                if (addItem(fileName))
-                {
+                addItem(fileName);
 
-                }
 
                 return 0;
 

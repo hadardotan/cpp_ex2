@@ -28,17 +28,34 @@ class IkeaItem
 
 public:
 
+    /**
+     * default ctor
+     * @param catalogNumber
+     * @param itemName
+     * @param price
+     */
+    IkeaItem(std::string &catalogNumber, std::string &itemName, std::string &price, std::string &quantity) = default;
 
+    /**
+     * copy ctor
+     * @param other
+     */
+    IkeaItem(IkeaItem &other);
+
+    /**
+     * empty item
+     */
+    IkeaItem() : _catalogNumber(""), _itemName(""), _price("") {};
 
 
 
 
 protected:
 
-    int _catalogNumber;
+    std::string _catalogNumber;
 
 public:
-    int getCatalogNumber() const {
+    std::string getCatalogNumber() const {
         return _catalogNumber;
     }
 
@@ -50,18 +67,23 @@ public:
     }
 
 protected:
-    double _price; // price per unit
-
-
+    std::string _price; // price per unit
+    double _quantity =0;
 
 };
-
 
 
 class FabricItem : public  IkeaItem
 {
 
 public:
+
+    FabricItem(IkeaItem ikeaItem, const std::string &weight) : IkeaItem(ikeaItem)
+    {
+        _weight = std::stod(weight);
+    }
+
+
 
 
 protected:
@@ -75,10 +97,16 @@ protected:
 class CandyItem : public IkeaItem
 {
 
+public:
+
+    CandyItem(IkeaItem ikeaItem, const std::string &calories): IkeaItem(ikeaItem)
+    {
+        _calories = std::stod(calories);
+    }
+
 
 protected:
 
-private:
     double _calories;
 
 };
@@ -86,6 +114,14 @@ private:
 
 class LeisureItem : public IkeaItem
 {
+
+public:
+    LeisureItem(IkeaItem ikeaItem, const std::string &author, const std::string &year, const std::string &length)
+            : IkeaItem(ikeaItem), _author(author) //todo check move
+    {
+        _year = std::stoi(year);
+        _length = std::stoi(length);
+    }
 
 protected:
 
@@ -101,22 +137,45 @@ protected:
 class FurnitureItem : public IkeaItem
 {
 
+public:
+
+    FurnitureItem(IkeaItem ikeaItem, const std::string &dimensions) : IkeaItem(ikeaItem), _dimensions(dimensions){};
+
+
+
 protected:
-    std::array<double, FURNITURE_DIM> _dimensions;
+    std::string _dimensions;
 
 };
 
 
-//todo - desks and chairs - together???
+class BigFurnitureItem : public FurnitureItem
+{
+public:
+
+    BigFurnitureItem(IkeaItem ikeaItem, const std::string &dimensions, const std::string &material, const std::string &color) :
+            FurnitureItem(ikeaItem, dimensions), _material(material), _color(color){};
+
+
+protected:
+
+    std::string _material;
+    std::string _color;
+
+};
 
 
 
 class KitchenItem : public FurnitureItem
 {
+public:
+
+    KitchenItem(IkeaItem ikeaItem, const std::string &dimensions, const std::string &capacity) :
+            FurnitureItem(ikeaItem, dimensions), _capacity(capacity){};
 
 
 protected:
-    double _capacity;
+    std::string _capacity;
 };
 
 

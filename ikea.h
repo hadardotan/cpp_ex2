@@ -8,6 +8,15 @@
 /**
  * CONSTANTS
  */
+#include <vector>
+
+#include "IkeaItem.h"
+
+#include <fstream>
+#include <utility>
+#include<algorithm>
+#include <iostream>
+
 #define STORE_MENU "1.Input stock from file\n2.Find item by catalog number\n3.Find item by name\n4.Print stock by catalog number\n5.Print stock by name\n6.Sell item\n7.Exit\n"
 
 
@@ -23,7 +32,7 @@
 #define END_OF_ITEM "-----"
 #define MIN_NUM_OF_ITEM_LINES 4
 
-std::string paramNames[NUM_OF_PARAMS] =
+static const std::vector<std::string> paramNames
         {
                 "Item",
                 "Name",
@@ -42,12 +51,7 @@ std::string paramNames[NUM_OF_PARAMS] =
 
 
 
-#include "IkeaItem.h"
-#include <vector>
-#include <fstream>
-#include <utility>
-#include<algorithm>
-#include <iostream>
+
 
 
 /**
@@ -55,7 +59,7 @@ std::string paramNames[NUM_OF_PARAMS] =
  * @param fileName
  * @return
  */
-bool addItem(std::string fileName);
+void addItem(const std::string fileName);
 
 
 /**
