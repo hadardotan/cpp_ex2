@@ -67,7 +67,7 @@ void addItem(const std::string fileName);
  * @param catalogNumber
  * @return string represent item if the item was found, or "item not found" if item wasnt found
  */
-std::string getItemByCatalogNumber(int catalogNumber);
+std::string getItemByCatalogNumber(std::string catalogNumber);
 
 
 /**
@@ -85,7 +85,7 @@ std::string getItemByName(std::string itemName);
  * @param items
  * @return string represent current ikea item by input file format, sorted by categorical number
  */
-std::string getItemsByCategoricalOrder(std::vector<IkeaItem> &items);
+void getItemsByCategoricalOrder(std::vector<IkeaItem*> &items);
 
 
 

@@ -10,7 +10,7 @@
 
 #include <string>
 #include <array>
-
+using std::string;
 
 /**
  * constants
@@ -34,7 +34,7 @@ public:
      * @param itemName
      * @param price
      */
-    IkeaItem(std::string &catalogNumber, std::string &itemName, std::string &price, std::string &quantity) = default;
+    IkeaItem(string &catalogNumber, string &itemName, string &price, string &quantity, string &inputString);
 
     /**
      * copy ctor
@@ -52,23 +52,40 @@ public:
 
 protected:
 
-    std::string _catalogNumber;
+    string _catalogNumber;
 
 public:
-    std::string getCatalogNumber() const {
+    string getCatalogNumber() const {
         return _catalogNumber;
     }
 
 protected:
-    std::string _itemName;
+    string _itemName;
 public:
-    const std::string &getItemName() const {
+    const string &getItemName() const {
         return _itemName;
     }
 
 protected:
-    std::string _price; // price per unit
+    string _price;
+public:
+    /**
+     * add quantity to exist quantity
+     * @param _quantity
+     */
+    void updateQuantity(double _quantity);
+
+public:
+    const string &getPrice() const;
+
+protected:
+    // price per unit
     double _quantity =0;
+
+    string _inputString;
+public:
+    const string &getInputString() const;
+
 
 };
 
@@ -78,7 +95,8 @@ class FabricItem : public  IkeaItem
 
 public:
 
-    FabricItem(IkeaItem ikeaItem, const std::string &weight) : IkeaItem(ikeaItem)
+    FabricItem(string &catalogNumber, string &itemName, string &price, string &quantity, string &inputString, const string &weight) :
+            IkeaItem(catalogNumber, itemName, price, quantity, inputString)
     {
         _weight = std::stod(weight);
     }
@@ -88,6 +106,11 @@ public:
 
 protected:
     double _weight;
+public:
+    double getWeight() const {
+        return _weight;
+    }
+
 
 };
 
@@ -99,7 +122,8 @@ class CandyItem : public IkeaItem
 
 public:
 
-    CandyItem(IkeaItem ikeaItem, const std::string &calories): IkeaItem(ikeaItem)
+    CandyItem(string &catalogNumber, string &itemName, string &price, string &quantity, string &inputString, const string &calories):
+            IkeaItem(catalogNumber, itemName, price, quantity, inputString)
     {
         _calories = std::stod(calories);
     }
@@ -116,8 +140,8 @@ class LeisureItem : public IkeaItem
 {
 
 public:
-    LeisureItem(IkeaItem ikeaItem, const std::string &author, const std::string &year, const std::string &length)
-            : IkeaItem(ikeaItem), _author(author) //todo check move
+    LeisureItem(string &catalogNumber, string &itemName, string &price, string &quantity, string &inputString, string &author, const string &year, const string &length)
+            : IkeaItem(catalogNumber, itemName, price, quantity, inputString), _author(author) //todo check move
     {
         _year = std::stoi(year);
         _length = std::stoi(length);
@@ -125,7 +149,7 @@ public:
 
 protected:
 
-    std::string _author;
+    string _author;
     int _year; //year of publication
     int _length;
 };
@@ -139,12 +163,13 @@ class FurnitureItem : public IkeaItem
 
 public:
 
-    FurnitureItem(IkeaItem ikeaItem, const std::string &dimensions) : IkeaItem(ikeaItem), _dimensions(dimensions){};
+    FurnitureItem(string &catalogNumber, string &itemName, string &price, string &quantity, string &inputString, const string &dimensions) :
+            IkeaItem(catalogNumber, itemName, price, quantity, inputString), _dimensions(dimensions){};
 
 
 
 protected:
-    std::string _dimensions;
+    string _dimensions;
 
 };
 
@@ -153,14 +178,14 @@ class BigFurnitureItem : public FurnitureItem
 {
 public:
 
-    BigFurnitureItem(IkeaItem ikeaItem, const std::string &dimensions, const std::string &material, const std::string &color) :
-            FurnitureItem(ikeaItem, dimensions), _material(material), _color(color){};
+    BigFurnitureItem(string &catalogNumber, string &itemName, string &price, string &quantity, string &inputString, const string &dimensions, const string &material, const string &color) :
+            FurnitureItem(catalogNumber, itemName, price, quantity, inputString, dimensions), _material(material), _color(color){};
 
 
 protected:
 
-    std::string _material;
-    std::string _color;
+    string _material;
+    string _color;
 
 };
 
@@ -170,12 +195,12 @@ class KitchenItem : public FurnitureItem
 {
 public:
 
-    KitchenItem(IkeaItem ikeaItem, const std::string &dimensions, const std::string &capacity) :
-            FurnitureItem(ikeaItem, dimensions), _capacity(capacity){};
+    KitchenItem(string &catalogNumber, string &itemName, string &price, string &quantity, string &inputString, const string &dimensions, const string &capacity) :
+            FurnitureItem(catalogNumber, itemName, price, quantity, inputString, dimensions), _capacity(capacity){};
 
 
 protected:
-    std::string _capacity;
+    string _capacity;
 };
 
 
