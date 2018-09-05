@@ -569,6 +569,7 @@ int main()
             {
                 std::string catalogNumber;
                 initCin();
+                std::cout << ENTER_CAT_NUM;
                 std::cin >> catalogNumber;
                 std::cout<< sellItem(catalogNumber);
                 break;
@@ -583,6 +584,9 @@ int main()
         }
 
     }
+
+
+    ikeaItems.clear();
 
     return 0;
 
