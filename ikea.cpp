@@ -7,7 +7,6 @@
 #include "ikea.h"
 
 
-
 /**
  * global variables
  */
@@ -17,6 +16,16 @@ std::vector<IkeaItem*> ikeaItems; // <item, quantity>
 /**
  * helper functions
  */
+
+/**
+ * clears cin
+ */
+void initCin()
+{
+    std::cin.clear();
+    std::cin.ignore(256, '\n');
+}
+
 
 
 /**
@@ -28,30 +37,42 @@ bool isNumericString(const std::string &str)
 {
     return str.find_first_not_of("0123456789") == std::string::npos;
 
-
-
 }
-
-
+/**
+ * left trim
+ * @param str
+ * @param chars
+ * @return
+ */
 std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
 {
     str.erase(0, str.find_first_not_of(chars));
     return str;
 }
 
+/**
+ * right trim
+ * @param str
+ * @param chars
+ * @return
+ */
 std::string& rtrim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
 {
     str.erase(str.find_last_not_of(chars) + 1);
     return str;
 }
 
+/**
+ * left and right trim
+ * @param str
+ * @param chars
+ * @return
+ */
 std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
 {
     return ltrim(rtrim(str, chars), chars);
 }
 
-
-// todo - create enum of item names
 
 /**
  * splits a line by colon <field> : <value>
@@ -61,20 +82,18 @@ std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
 std::pair<std::string, std::string> splitLineByColon(std::string line)
 {
 
-    std::string param, value;
+    std::string param = "", value = "";
     std::string::size_type pos = line.find(':');
+
     if(line.npos != pos)
     {
-
         param = line.substr(pos + 1);
         value = line.substr(0, pos);
     }
     return std::make_pair(param, value);
 
-    //todo - else illegal line
 
 };
-
 
 /**
  * check if item exist in current ikeaItems according to catalog number
@@ -95,37 +114,6 @@ IkeaItem* findExistItem(const std::string &catalogNumber)
     return nullptr;
 }
 
-/**
- * validate exist ikeaItem has the same values as current imported ikea item
- * @param exist
- * @param current
- * @return
- */
-//bool validateExist(IkeaItem* exist, std::vector<std::pair<std::string, std::string>> current)
-//{
-//
-//    //first validate mandatory
-//    if (exist->getCatalogNumber() != current[0].second || exist->getItemName() != current[1].second || exist->getPrice() != current[3].second)
-//    {
-//        return false;
-//    }
-//
-//    std::string existType = exist->getItemType();
-//
-//    if (existType == "FabricItem")
-//    {
-//
-//
-//
-//    }
-//    else if (existType == )
-//
-//
-//
-//
-//}
-
-
 
 IkeaItem* createItem(std::vector<std::pair<std::string, std::string>> currentItem, string currentItemString);
 
@@ -134,52 +122,55 @@ IkeaItem* createItem(std::vector<std::pair<std::string, std::string>> currentIte
  * @param fileName
  * @return
  */
-void addItem(const std::string fileName)
+void addItem(const std::string fileName="/cs/usr/hadar.dotan/Documents/cpp_ex2/items.txt")
 {
     string currentLine;
     IkeaItem* ikeaItem;
     IkeaItem* existItem;
-    std::ifstream  inputFile("/cs/usr/hadar.dotan/Documents/cpp_ex2/items.txt");
+    std::ifstream  inputFile(fileName);
     string currentItemString = "";
     bool itemExist = false;
-
     std::vector<std::pair<std::string, std::string>> currentItem;
-
     if (inputFile.is_open())
     {
-
-        int lineIndex = 0;
+        int lineIndex = 0, productNo = 0;
         while(std::getline(inputFile, currentLine))
         {
-
-            if (lineIndex > 7) //too many params
+            if (lineIndex > MAX_NUM_OF_ITEM_LINES) //too many params
             {
-
-                std::cout << "illegal item fields\n";
+                std::cout << ILLEGAL_ITEM_FIELDS;
                 inputFile.close();
                 return;
             }
-
             else if (currentLine == END_OF_ITEM)
             {
                 currentItemString += currentLine+"\n";
                 //create item object
-                if (currentItem.size() < 4)
+                if (currentItem.size() < MIN_NUM_OF_ITEM_LINES)
                 {
+                    std::cout << ILLEGAL_ITEM_FIELDS;
+                    inputFile.close();
+                    return;
+                }
 
-                    std::cout << "illegal item fields\n";
-                    inputFile.close();
-                    return;
-                }
-                ikeaItem = createItem(currentItem, currentItemString);
-                if (ikeaItem == nullptr)
+                if (itemExist)
                 {
-                    std::cout << "illegal item fields\n";
-                    inputFile.close();
-                    return;
+                    auto addQuantity = std::stod(currentItem[2].first);
+                    existItem->updateQuantity(addQuantity);
                 }
+                else
+                {
+                    ikeaItem = createItem(currentItem, currentItemString);
+                    if (ikeaItem == nullptr)
+                    {
+                        std::cout << ILLEGAL_ITEM_FIELDS;
+                        inputFile.close();
+                        return;
+                    }
+                    ikeaItems.push_back(ikeaItem);
+                }
+
                 currentItemString = "";
-                ikeaItems.push_back(ikeaItem);
                 lineIndex = 0;
                 currentItem.clear();
             }
@@ -194,15 +185,16 @@ void addItem(const std::string fileName)
 
                     if (splitLine.second != paramNames[lineIndex])
                     {
-                        std::cout << "illegal line param\n";
+                        std::cout << ILLEGAL_LINE_PARAM;
                         //return to menu
                         inputFile.close();
                         return;
 
                     }
                     if (lineIndex == 0 )
-                    { //check if item exist
-                        existItem = findExistItem(splitLine.first);
+                    {
+                        productNo++;
+                        existItem = findExistItem(trim(splitLine.first));
                         if (existItem != nullptr) //means item exist - update quantity
                         {
                             itemExist = true;
@@ -214,25 +206,27 @@ void addItem(const std::string fileName)
                         if (existItem->getItemName() != trim(splitLine.first))
                         {
 
-                            std::cout << "Exist item with the same categorical number but with different item name\n";
+                            std::cout << "product no. "+std::to_string(productNo)+" already in stock with different values\n";
                         }
+
                     }
                 }
 
                 currentItem.push_back(splitLine);
-
                 lineIndex++;
-
             }
-
         }
-
         inputFile.close();
+        return;
     }
-
-
+    std::cout << ILLEGAL_PATH;
 }
 
+/**
+ *
+ * @param s
+ * @return true if string is double, false otherwise
+ */
 bool isDouble(const std::string& s)
 {
     try
@@ -246,8 +240,37 @@ bool isDouble(const std::string& s)
     return true;
 }
 
+/**
+ *
+ * @param s
+ * @return true if string is 3 doubles seprated by spaces, false otherwise
+ */
+bool is3D(string s) {
+    std::vector<std::string> result;
+    std::istringstream iss(s);
+    int i = 0;
+    for(std::string s; iss >> s; )
+    {
+        result.push_back(s);
+        i++;
+    }
+    if (i != FURNITURE_DIM)
+    {
+        return false;
+    }
+    for(auto& str: result)
+    {
+        if(!isDouble(str))
+        {
+            return false;
+        }
+    }
+    return true;
 
-bool is3D(string s);
+}
+
+
+
 
 IkeaItem* createItem(std::vector<std::pair<std::string, std::string>> currentItem, string currentItemString)
 {
@@ -258,7 +281,7 @@ IkeaItem* createItem(std::vector<std::pair<std::string, std::string>> currentIte
     std::string firstAdditional, secondAdditional;
     firstAdditional = trim(currentItem[4].second);
 
-    if ( firstAdditional == "Weight" && currentItem.size() == 5)
+    if ( firstAdditional == WEIGHT && currentItem.size() == 5)
     {
         // validate weight is double
         if (!isDouble(trim(currentItem[4].first)))
@@ -269,7 +292,7 @@ IkeaItem* createItem(std::vector<std::pair<std::string, std::string>> currentIte
                               trim(currentItem[2].first),currentItemString, trim(currentItem[4].first));
         return item;
     }
-    else if (firstAdditional == "Calories" && currentItem.size() == 5)
+    else if (firstAdditional == CALORIES && currentItem.size() == 5)
     {
         //validate calories is double
         if (!isDouble(trim(currentItem[4].first)))
@@ -280,7 +303,7 @@ IkeaItem* createItem(std::vector<std::pair<std::string, std::string>> currentIte
                              trim(currentItem[2].first), currentItemString, trim(currentItem[4].first));
         return item;
     }
-    else if(firstAdditional == "Dimensions")
+    else if(firstAdditional == DIM)
     {
         // validate dimension is 3 doubles
         if (!is3D(trim(currentItem[4].first)))
@@ -288,9 +311,9 @@ IkeaItem* createItem(std::vector<std::pair<std::string, std::string>> currentIte
             return nullptr;
         }
         secondAdditional = trim(currentItem[5].second);
-        if ( secondAdditional == "Material" && currentItem.size() == 7)
+        if ( secondAdditional == MATERIAL && currentItem.size() == 7)
         {
-            if (trim(currentItem[6].second) == "Color")
+            if (trim(currentItem[6].second) == COLOR)
             {
                 item = new BigFurnitureItem(trim(currentItem[0].first), trim(currentItem[1].first),
                                             trim(currentItem[3].first), trim(currentItem[2].first), currentItemString,
@@ -299,7 +322,7 @@ IkeaItem* createItem(std::vector<std::pair<std::string, std::string>> currentIte
                 return item;
             }
         }
-        else if( secondAdditional == "Capacity" &&currentItem.size() == 6)
+        else if( secondAdditional == CAPACITY &&currentItem.size() == 6)
         {
             // validate capacity is double
             if (!isDouble(trim(currentItem[5].first)))
@@ -313,12 +336,12 @@ IkeaItem* createItem(std::vector<std::pair<std::string, std::string>> currentIte
             return item;
         }
     }
-    else if(firstAdditional == "Author" && currentItem.size() == 7)
+    else if(firstAdditional == AUTHOR && currentItem.size() == 7)
     {
-        if (trim(currentItem[5].second) == "Year of publication")
+        if (trim(currentItem[5].second) == YEAR)
         {
 
-            if (trim(currentItem[6].second) == "Length")
+            if (trim(currentItem[6].second) == LEN)
             {
 
                 if (!(isNumericString(trim(currentItem[5].first))) || !(isNumericString(trim(currentItem[6].first))))
@@ -340,30 +363,7 @@ IkeaItem* createItem(std::vector<std::pair<std::string, std::string>> currentIte
     return nullptr;
 }
 
-bool is3D(string s) {
-    std::vector<std::string> result;
-    std::istringstream iss(s);
-    int i = 0;
-    for(std::string s; iss >> s; )
-    {
-        result.push_back(s);
-        i++;
-    }
-    if (i != 3)
-    {
-        return false;
-    }
-    for(auto& str: result)
-    {
-        if(!isDouble(str))
-        {
-            return false;
-        }
 
-    }
-    return true;
-
-}
 
 
 
@@ -376,7 +376,7 @@ std::string getItemByCatalogNumber(std::string catalogNumber)
 {
     if (!isNumericString(catalogNumber))
     {
-        return std::string("Illegal catalog number\n");
+        return std::string(ILLEGAL_CAT_NUM);
     }
 
     for (auto &ikeaItem : ikeaItems) {
@@ -386,7 +386,7 @@ std::string getItemByCatalogNumber(std::string catalogNumber)
             return ikeaItem->getInputString();
         }
     }
-    return std::string("Item not found\n");
+    return std::string(ITEM_NOT_FOUND);
 }
 
 
@@ -398,16 +398,14 @@ std::string getItemByCatalogNumber(std::string catalogNumber)
  */
 std::string getItemByName(std::string itemName)
 {
-    for (auto &ikeaItem : ikeaItems) {
-
-        if (ikeaItem->getItemName() == itemName) {
-
-
-
+    for (auto &ikeaItem : ikeaItems)
+    {
+        if (ikeaItem->getItemName() == itemName)
+        {
             return ikeaItem->getInputString();
         }
     }
-    return std::string("Item not found\n");
+    return std::string(ITEM_NOT_FOUND);
 
 }
 
@@ -419,7 +417,7 @@ std::string getItemByName(std::string itemName)
  * @param right
  * @return
  */
-bool compareByCategoricalOrder(const IkeaItem* &left, const IkeaItem* &right)
+bool compareByCategoricalOrder(IkeaItem* left, IkeaItem* right)
 {
 
     return left->getCatalogNumber() < right->getCatalogNumber();
@@ -433,14 +431,12 @@ bool compareByCategoricalOrder(const IkeaItem* &left, const IkeaItem* &right)
  */
 void getItemsByCategoricalOrder(std::vector<IkeaItem*> &items)
 {
-    std::sort (items.begin(), items.end(), compareByCategoricalOrder); //todo check
-    for (auto pos=items.begin(); pos!=items.end(); ++pos) {
+    std::sort (items.begin(), items.end(), compareByCategoricalOrder);
+    for (auto pos=items.begin(); pos!=items.end(); ++pos)
+    {
         std::cout << (*pos)->getInputString() ;
     }
-
-
 }
-
 
 
 /**
@@ -449,102 +445,134 @@ void getItemsByCategoricalOrder(std::vector<IkeaItem*> &items)
  * @param right
  * @return
  */
-bool compareByItemName(const IkeaItem &left, const IkeaItem &right)
+bool compareByItemName(IkeaItem* left, IkeaItem* right)
 {
-
-    return left.getItemName() < right.getItemName();
-
+    return left->getItemName() < right->getItemName();
 }
-
 
 /**
  *
  * @param items
  * @return string represent current ikea item by input file format, sorted by item name alphabetically
  */
-std::string getItemsByItemName(std::vector<IkeaItem> &items);
-
-
+void getItemsByItemName(std::vector<IkeaItem*> &items)
+{
+    std::sort (items.begin(), items.end(), compareByItemName);
+    for (auto pos = items.begin(); pos != items.end(); ++pos)
+    {
+        std::cout << (*pos)->getInputString() ;
+    }
+}
 
 /**
  * sells an item
  * @param catalogNumber
  * @return
  */
-bool sellItem(int catalogNumber);
+string sellItem(string catalogNumber) {
+
+    if (!isNumericString(catalogNumber)) {
+        return std::string(ILLEGAL_CAT_NUM);
+
+    }
+    IkeaItem *item = findExistItem(catalogNumber);
+    if (item == nullptr) {
+        return std::string(ITEM_NOT_FOUND);
+    }
+    if (item->isPerUnit()) {
+        std::cout << ENTER_UNIT;
+    } else {
+        std::cout << ENTER_QUANTITY;
+    }
+    std::string desiredQuantity;
+    initCin();
+    std::cin >> desiredQuantity;
+
+    if ((item->isPerUnit() && isNumericString(desiredQuantity)) || (!item->isPerUnit() && isDouble(desiredQuantity)))
+    {
+        double subQuantity = std::stod(desiredQuantity);
+        if (subQuantity > item->getQuantity()) {
+            return std::string(NO_STOCK);
+        }
+        item->updateQuantity(-subQuantity);
+        return item->getInputString();
+    }
+    return std::string(ILLEGAL_QUANTITY);
+}
 
 
 
-
-
-
-
-
+/**
+ *
+ * @return
+ */
 int main()
 {
-
     int userInput;
     bool showMenu = true;
-
     while (showMenu)
     {
 
         std::cout << STORE_MENU;
         std::cin >> userInput;
 
-        while (std::cin.fail() || userInput > 7)
+        while (std::cin.fail() || userInput > MAX_MENU_BUTTON)
         {
             std::cout << STORE_MENU;
-            std::cin.clear();
-            std::cin.ignore(256, '\n');
+            initCin();
             std::cin >> userInput;
         }
-
-
         switch (userInput)
         {
-
             case INPUT_STOCK_FROM_FILE:
             {
                 std::string fileName;
-                std::cin.clear();
-                std::cin.ignore(256, '\n');
+                initCin();
+                std::cout << ENTER_PATH;
                 std::cin >> fileName;
                 addItem(fileName);
                 break;
             }
-
             case FIND_ITEM_BY_CAT_NUM:
             {
                 std::string catalogNumber;
-                std::cin.clear();
-                std::cin.ignore(256, '\n');
+                initCin();
+                std::cout << ENTER_CAT_NUM;
                 std::cin >> catalogNumber;
                 std::cout << getItemByCatalogNumber(catalogNumber);
-                //todo - check which error can happen?
                 break;
             }
 
             case FIND_ITEM_BY_NAME:
             {
                 std::string itemName;
-                std::cin.clear();
-                std::cin.ignore(256, '\n');
+                initCin();
+                std::cout << ENTER_ITEM_NAME;
                 std::getline(std::cin, itemName);
                 std::cout << getItemByName(itemName);
                 break;
             }
 
             case PRINT_STOCK_BY_CAT_NUM:
+            {
                 getItemsByCategoricalOrder(ikeaItems);
                 break;
+            }
 
             case PRINT_STOCK_BY_NAME:
+            {
+                getItemsByItemName(ikeaItems);
                 break;
+            }
 
             case SELL_ITEM:
+            {
+                std::string catalogNumber;
+                initCin();
+                std::cin >> catalogNumber;
+                std::cout<< sellItem(catalogNumber);
                 break;
-
+            }
             case EXIT:
                 showMenu = false;
                 break;

@@ -69,6 +69,8 @@ public:
 protected:
     string _price;
 public:
+    double getQuantity() const;
+
     /**
      * add quantity to exist quantity
      * @param _quantity
@@ -85,6 +87,11 @@ protected:
     string _inputString;
 public:
     const string &getInputString() const;
+
+protected:
+    bool _isPerUnit = false;
+public:
+    bool isPerUnit() const;
 
 
 };
@@ -145,6 +152,8 @@ public:
     {
         _year = std::stoi(year);
         _length = std::stoi(length);
+        _isPerUnit = true;
+
     }
 
 protected:
@@ -164,7 +173,10 @@ class FurnitureItem : public IkeaItem
 public:
 
     FurnitureItem(string &catalogNumber, string &itemName, string &price, string &quantity, string &inputString, const string &dimensions) :
-            IkeaItem(catalogNumber, itemName, price, quantity, inputString), _dimensions(dimensions){};
+            IkeaItem(catalogNumber, itemName, price, quantity, inputString), _dimensions(dimensions)
+    {
+        _isPerUnit = true;
+    };
 
 
 
@@ -179,7 +191,8 @@ class BigFurnitureItem : public FurnitureItem
 public:
 
     BigFurnitureItem(string &catalogNumber, string &itemName, string &price, string &quantity, string &inputString, const string &dimensions, const string &material, const string &color) :
-            FurnitureItem(catalogNumber, itemName, price, quantity, inputString, dimensions), _material(material), _color(color){};
+            FurnitureItem(catalogNumber, itemName, price, quantity, inputString, dimensions),
+            _material(material), _color(color){};
 
 
 protected:

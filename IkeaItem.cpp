@@ -3,6 +3,7 @@
 //
 
 
+#include <iostream>
 #include "IkeaItem.h"
 
 IkeaItem::IkeaItem(string &catalogNumber, string &itemName, string &price, string &quantity, string  &inputString)
@@ -37,24 +38,33 @@ const std::string &IkeaItem::getPrice() const
 void IkeaItem::updateQuantity(double _quantity)
 {
 
-    double oldQuantity = IkeaItem::_quantity;
-    string inputString = IkeaItem::_inputString;
-    string oldQuantityString = "Quantity: "+std::to_string(oldQuantity);
-
-    auto pos = inputString.find(oldQuantityString);
-
-    IkeaItem::_quantity += _quantity;
+    string inputString = this->_inputString;
+    string oldQuantityString = "Quantity";
+    string subStr1, subStr2, subStr3;
+    auto quantityPos = inputString.find(oldQuantityString);
+    subStr1 = inputString.substr(0,quantityPos);
+    subStr2 = inputString.substr(quantityPos);
+    auto newLinePos = subStr2.find("\n");
+    subStr3 = subStr2.substr(newLinePos);
+    this->_quantity += _quantity;
     string newQuantityString = "Quantity: "+std::to_string(IkeaItem::_quantity);
-
-    size_t len = oldQuantityString.length();
-    inputString.replace(pos, pos+len, newQuantityString);
-    IkeaItem::_inputString = inputString;
-
+    newQuantityString = newQuantityString.erase ( newQuantityString.find_last_not_of('0') + 1, std::string::npos );
+    newQuantityString = newQuantityString.erase ( newQuantityString.find_last_not_of('.') + 1, std::string::npos );
+    inputString = subStr1+newQuantityString+subStr3;
+    this->_inputString = inputString;
 
 }
 
 const string &IkeaItem::getInputString() const {
     return _inputString;
+}
+
+bool IkeaItem::isPerUnit() const {
+    return _isPerUnit;
+}
+
+double IkeaItem::getQuantity() const {
+    return _quantity;
 }
 
 
